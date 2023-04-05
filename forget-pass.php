@@ -1,32 +1,35 @@
 <?php
+$errors = array(); 
 
-if(isset($_POST['reset'])) {
-  // retrieve username from cookie
-  $username = $_COOKIE['username'];
-var_dump($username);
-  // retrieve new password
-  $password = $_POST['password'];
+if (isset($_POST['reset'])) {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+    $repassword = $_POST['repassword'];
 
-  // validate password
-  if(strlen($password) < 8) {
-    $errors[] = 'Password must be at least 8 characters long';
-  }
+    $json = $_COOKIE['users'];
+    $users = json_decode($json, true);
 
-  // if there are no errors
-  if(empty($errors)) {
-    // retrieve users array from cookie
-    $users = json_decode($_COOKIE['users'], true);
+    // Check if the username exists in the array
+    $user_exists = false;
+    foreach ($users as &$user) {
+        if ($user['username'] === $username) {
+            $user_exists = true;
 
-    // update password for user
-    $users[$username]['password'] = password_hash($password, PASSWORD_DEFAULT);
-
-    // store updated users array in cookie
-    setcookie('users', json_encode($users), time() + (86400 * 30), '/');
-
-    // redirect to login page
-    header('Location: login.php');
-    exit;
-  }
+            if ($password !== $repassword) {
+                $errors[] = "The new passwords do not match";
+            } else {
+                $user['password'] = $password;
+                $json = json_encode($users);
+                setcookie('users', $json, time() + 3600, '/');
+                header('Location: login.php');
+                exit;
+            }
+            break;
+        }
+    }
+    if (!$user_exists) {
+        $errors[] = "Invalid username";
+    }
 }
 ?>
 

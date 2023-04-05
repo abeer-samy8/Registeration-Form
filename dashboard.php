@@ -1,5 +1,15 @@
 
 
+<?php
+if (isset($_POST['logout'])) {
+    setcookie('users', '', time() - 3600, '/');
+    session_destroy();
+
+    header('Location: login.php');
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,12 +20,6 @@
     <form method="post" >
         <input type="submit" name="logout" value="Logout">
     </form>
-    <?php
-    session_start();
-    if(isset($_POST['logout'])) {
-        session_destroy();
-        header('Location: login.php');
-    }
-    ?>
+   
 </body>
 </html>

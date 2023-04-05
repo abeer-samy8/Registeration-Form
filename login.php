@@ -5,28 +5,23 @@ if(isset($_POST['login'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Get the cookie value
     $json = $_COOKIE['users'];
-
-    // Decode the JSON to an array
     $users = json_decode($json, true);
+   // var_dump($users);
 
-    // Search for the user in the array
-    $user = null;
+   $user = null;
     foreach ($users as $u) {
         if ($u['username'] == $username) {
             $user = $u;
             break;
         }
     }
-    if ($user && password_verify($password, $user['password'])) {
-        // User found and password matches
+    if ($user &&  $user['password']) {
         session_start();
         $_SESSION['username'] = $user['username'];
         header('Location: dashboard.php');
         exit();
     } else {
-        // User not found or password does not match
         $errors[] = 'Invalid username or password.';
     }
 }

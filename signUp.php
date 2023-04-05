@@ -1,12 +1,16 @@
-
 <?php
 
 session_start();
 
-// Initialize an empty array for users
-$users = [];
+// Check if the users cookie exists and retrieve the users array
+if (isset($_COOKIE['users'])) {
+    $json = $_COOKIE['users'];
+    $users = json_decode($json, true);
+} else {
 
-// Function to validate password according to policies
+    $users = [];
+}
+
 function validatePassword($password) {
     $errors = [];
 
@@ -17,24 +21,21 @@ function validatePassword($password) {
     elseif (!preg_match("#[0-9]+#", $password)) {
         $errors[] = "Password should contain at least one number";
     }
-	
+    
     elseif (!preg_match("#[a-zA-Z]+#", $password)) {
         $errors[] = "Password should contain at least one letter";
     } 
-	
+    
     return $errors;
 }
 
-// Check if the form has been submitted
 if (isset($_POST['signup'])) {
 
-    // Get the form data
     $username = $_POST['username'];
     $email = $_POST['email'];
     $password = $_POST['password'];
     $repassword = $_POST['repassword'];
 
-    // Validate the form data
     $errors = [];
 
     if (empty($username) || empty($email) || empty($password) || empty($repassword)) {
@@ -50,33 +51,25 @@ if (isset($_POST['signup'])) {
         $errors = array_merge($errors, $passwordErrors);
     }
 
-    // If no errors, add user to the users array
     if (empty($errors)) {
-        // Generate a unique ID for the user
         $userId = count($users) + 1;
 
-        // Add user to the users array
         $users[] = [
             'id' => $userId,
             'username' => $username,
             'email' => $email,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
+            'password' => $password,
         ];
-
-        // Store the users array in a session variable
-        // Encode the array as JSON
+      
         $json = json_encode($users);
-
-        // Set the cookie with the encoded JSON
-        setcookie('users', $json, time() + 3600); // Expires in 1 hour
-
-        // Redirect to the login page
+        setcookie('users', $json, time() + 3600 , '/');
         header('Location: login.php');
         exit();
      }
 }
 
 ?>
+
 
 
 <!doctype html>
