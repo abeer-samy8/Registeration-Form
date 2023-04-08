@@ -1,4 +1,4 @@
- <?php
+<?php
 
 if(isset($_POST['login'])) {
 
@@ -7,25 +7,26 @@ if(isset($_POST['login'])) {
 
     $json = $_COOKIE['users'];
     $users = json_decode($json, true);
-   // var_dump($users);
+    // var_dump($users);
 
-   $user = null;
+    $user = null;
     foreach ($users as $u) {
         if ($u['username'] == $username) {
             $user = $u;
             break;
         }
     }
-    if ($user &&  $user['password']) {
+    
+    if ($user && password_verify($password, $user['password'])) {
         session_start();
         $_SESSION['username'] = $user['username'];
-        header('Location: dashboard.php');
+        header('Location: logout.php');
         exit();
     } else {
         $errors[] = 'Invalid username or password.';
     }
 }
-?> 
+?>
 
 <!doctype html>
 <html lang="en">

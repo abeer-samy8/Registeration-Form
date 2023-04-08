@@ -1,32 +1,14 @@
 <?php
-
 session_start();
 
-// Check if the users cookie exists and retrieve the users array
+require_once 'functions.php';
+
+// Check if the user's cookie exists and retrieve the user's array
 if (isset($_COOKIE['users'])) {
     $json = $_COOKIE['users'];
-    $users = json_decode($json, true);
+    $usersArray = json_decode($json, true);
 } else {
-
-    $users = [];
-}
-
-function validatePassword($password) {
-    $errors = [];
-
-    if (strlen($password) < 8) {
-        $errors[] = "Password should be at least 8 characters long";
-    }
-
-    elseif (!preg_match("#[0-9]+#", $password)) {
-        $errors[] = "Password should contain at least one number";
-    }
-    
-    elseif (!preg_match("#[a-zA-Z]+#", $password)) {
-        $errors[] = "Password should contain at least one letter";
-    } 
-    
-    return $errors;
+    $usersArray = [];
 }
 
 if (isset($_POST['signup'])) {
@@ -34,15 +16,15 @@ if (isset($_POST['signup'])) {
     $username = $_POST['username'];
     $email = $_POST['email'];
     $password = $_POST['password'];
-    $repassword = $_POST['repassword'];
+    $retypedPassword = $_POST['repassword'];
 
     $errors = [];
 
-    if (empty($username) || empty($email) || empty($password) || empty($repassword)) {
+    if (empty($username) || empty($email) || empty($password) || empty($retypedPassword)) {
         $errors[] = "All fields are required";
     }
 
-    if ($password != $repassword) {
+    if ($password != $retypedPassword) {
         $errors[] = "Passwords do not match";
     }
 
@@ -52,16 +34,19 @@ if (isset($_POST['signup'])) {
     }
 
     if (empty($errors)) {
-        $userId = count($users) + 1;
+        $userId = count($usersArray) + 1;
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-        $users[] = [
-            'id' => $userId,
-            'username' => $username,
-            'email' => $email,
-            'password' => $password,
-        ];
-      
-        $json = json_encode($users);
+    $newUser = [
+        'id' => $userId,
+        'username' => $username,
+        'email' => $email,
+        'password' => $hashedPassword, 
+    ];
+
+        $usersArray[] = $newUser;
+
+        $json = json_encode($usersArray);
         setcookie('users', $json, time() + 3600 , '/');
         header('Location: login.php');
         exit();

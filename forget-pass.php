@@ -1,5 +1,5 @@
 <?php
-$errors = array(); 
+$errors = array();
 
 if (isset($_POST['reset'])) {
     $username = $_POST['username'];
@@ -10,28 +10,28 @@ if (isset($_POST['reset'])) {
     $users = json_decode($json, true);
 
     // Check if the username exists in the array
-    $user_exists = false;
-    foreach ($users as &$user) {
-        if ($user['username'] === $username) {
-            $user_exists = true;
-
-            if ($password !== $repassword) {
-                $errors[] = "The new passwords do not match";
-            } else {
-                $user['password'] = $password;
-                $json = json_encode($users);
-                setcookie('users', $json, time() + 3600, '/');
-                header('Location: login.php');
-                exit;
-            }
-            break;
-        }
-    }
+    $user_exists = in_array($username, array_column($users, 'username'));
     if (!$user_exists) {
-        $errors[] = "Invalid username";
+        $errors['username'] = "Invalid username";
+    } else {
+        foreach ($users as &$user) {
+            if ($user['username'] === $username) {
+                if ($password !== $repassword) {
+                    $errors['password'] = "The new passwords do not match";
+                } else {
+                    $user['password'] = password_hash($password, PASSWORD_DEFAULT);
+                    $json = json_encode($users);
+                    setcookie('users', $json, time() + 3600, '/');
+                    header('Location: login.php');
+                    exit;
+                }
+                break;
+            }
+        }
     }
 }
 ?>
+
 
 
 <!doctype html>
@@ -62,28 +62,28 @@ if (isset($_POST['reset'])) {
 		      		<span class="fa fa-user-o"></span>
 		      	</div>
 		      	<!-- <h3 class="text-center mb-4">Have an account?</h3> -->
-						<form  method= "POST" class="login-form">
+						<form method="POST" class="login-form">
 		      		<div class="form-group">
-		      			<input type="text" class="form-control rounded-left" placeholder="Username" name='username' required>
+		      			<input type="text" class="form-control rounded-left" placeholder="Username" name="username" required>
+					
+                        <?php if (in_array('Invalid username', $errors)): ?>
+                            <div class="alert alert-danger" role="alert">Invalid username</div>
+                        <?php endif; ?>
+                            
 		      		</div>
-	            <div class="form-group d-flex">
-	              <input type="password" class="form-control rounded-left" placeholder="Password" name= 'password'  required>
-	            </div>
-                <div class="form-group d-flex">
-	              <input type="password" class="form-control rounded-left" placeholder="Confirm-Password" name= 'repassword'  required>
-	            </div>
-	          
-								
-	            </div>
-				<?php if (!empty($errors)): ?>
+                    <div class="form-group">
+                        <input type="password" class="form-control rounded-left" placeholder="Password" name="password" required>
+                        <?php if (isset($errors['password'])): ?>
                             <div class="alert alert-danger" role="alert">
-                                <?php foreach ($errors as $error): ?>
-                                    <div><?php echo $error; ?></div>
-                                <?php endforeach; ?>
+                                <?php echo $errors['password']; ?>
                             </div>
                         <?php endif; ?>
-	            <div class="form-group">
-	            	<button type="submit" class="btn btn-primary rounded submit p-3 px-5" name= 'reset'>LOG IN</button>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control rounded-left" placeholder="Confirm Password" name="repassword" required>
+                    </div>
+                    <div class="form-group">
+                    <button type="submit" class="btn btn-primary rounded submit p-3 px-5" name= 'reset'>Reset</button>
 	            </div>
 	          </form>
 	        </div>
@@ -94,3 +94,8 @@ if (isset($_POST['reset'])) {
 
 	</body>
 </html>
+
+
+
+
+
